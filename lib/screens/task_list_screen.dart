@@ -60,13 +60,11 @@ class _TaskListScreenState extends State<TaskListScreen> {
     List<Task> result = allTasks;
 
     if (filter == 'Completed') {
-      result =
-          result.where((task) => task.completed).toList();
+      result = result.where((task) => task.completed).toList();
     }
 
     if (filter == 'Pending') {
-      result =
-          result.where((task) => !task.completed).toList();
+      result = result.where((task) => !task.completed).toList();
     }
 
     if (searchText.isNotEmpty) {
@@ -120,6 +118,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Task Manager'),
+        centerTitle: true,
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: addTask,
@@ -145,9 +144,19 @@ class _TaskListScreenState extends State<TaskListScreen> {
               ),
             ),
 
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'Total Tasks: ${filteredTasks.length}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+
             Row(
-              mainAxisAlignment:
-                  MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 buildFilterButton('All'),
                 buildFilterButton('Completed'),
@@ -160,31 +169,46 @@ class _TaskListScreenState extends State<TaskListScreen> {
             Expanded(
               child: isLoading
                   ? const Center(
-                      child:
-                          CircularProgressIndicator(),
+                      child: CircularProgressIndicator(),
                     )
                   : hasError
                       ? Center(
                           child: Column(
                             mainAxisAlignment:
-                                MainAxisAlignment
-                                    .center,
+                                MainAxisAlignment.center,
                             children: [
                               const Text(
                                 'Failed to load tasks',
                               ),
+                              const SizedBox(height: 10),
                               ElevatedButton(
                                 onPressed: loadTasks,
-                                child:
-                                    const Text('Retry'),
-                              )
+                                child: const Text('Retry'),
+                              ),
                             ],
                           ),
                         )
                       : filteredTasks.isEmpty
                           ? const Center(
-                              child: Text(
-                                  'No tasks found'),
+                              child: Column(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.task_alt,
+                                    size: 80,
+                                  ),
+                                  SizedBox(height: 10),
+                                  Text(
+                                    'No Tasks Found',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight:
+                                          FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             )
                           : ListView.builder(
                               itemCount:
@@ -205,7 +229,27 @@ class _TaskListScreenState extends State<TaskListScreen> {
                                     leading: Checkbox(
                                       value:
                                           task.completed,
-                                      onChanged: null,
+                                      onChanged:
+                                          (value) async {
+                                        setState(() {
+                                          task.completed =
+                                              value ??
+                                                  false;
+                                          applyFilters();
+                                        });
+
+                                        final localTasks =
+                                            allTasks
+                                                .where(
+                                                  (e) =>
+                                                      e.isLocal,
+                                                )
+                                                .toList();
+
+                                        await storageService
+                                            .saveTasks(
+                                                localTasks);
+                                      },
                                     ),
                                     title:
                                         Text(task.title),
@@ -214,11 +258,55 @@ class _TaskListScreenState extends State<TaskListScreen> {
                                           ? 'Completed'
                                           : 'Pending',
                                     ),
-                                    trailing:
+                                    trailing: Row(
+                                      mainAxisSize:
+                                          MainAxisSize.min,
+                                      children: [
+                                        if (task.isLocal)
+                                          IconButton(
+                                            icon:
+                                                const Icon(
+                                              Icons.delete,
+                                            ),
+                                            onPressed:
+                                                () async {
+                                              setState(() {
+                                                allTasks
+                                                    .remove(
+                                                        task);
+                                                applyFilters();
+                                              });
+
+                                              final localTasks =
+                                                  allTasks
+                                                      .where(
+                                                        (e) =>
+                                                            e.isLocal,
+                                                      )
+                                                      .toList();
+
+                                              await storageService
+                                                  .saveTasks(
+                                                      localTasks);
+
+                                              ScaffoldMessenger.of(
+                                                      context)
+                                                  .showSnackBar(
+                                                const SnackBar(
+                                                  content:
+                                                      Text(
+                                                    'Task deleted',
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
                                         const Icon(
-                                      Icons
-                                          .arrow_forward_ios,
-                                      size: 16,
+                                          Icons
+                                              .arrow_forward_ios,
+                                          size: 16,
+                                        ),
+                                      ],
                                     ),
                                     onTap: () {
                                       Navigator.push(
