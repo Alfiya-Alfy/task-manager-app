@@ -176,6 +176,7 @@ https://jsonplaceholder.typicode.com/todos
 
 ✔ Pull To Refresh (Bonus)
 
+Due to Gradle/Kotlin environment issue, release APK build failed, but project runs successfully in debug mode.
 ---
 
 ## Author
