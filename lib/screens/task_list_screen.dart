@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../services/local_storage_service.dart';
 import 'task_detail_screen.dart';
 import 'add_task_screen.dart';
+import '../main.dart';
 
 class TaskListScreen extends StatefulWidget {
   const TaskListScreen({super.key});
@@ -117,9 +118,23 @@ class _TaskListScreenState extends State<TaskListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Task Manager'),
-        centerTitle: true,
+  title: const Text('Task Manager'),
+  centerTitle: true,
+  actions: [
+    IconButton(
+      icon: Icon(
+        Theme.of(context).brightness ==
+                Brightness.dark
+            ? Icons.light_mode
+            : Icons.dark_mode,
       ),
+      onPressed: () {
+        TaskManagerApp.of(context)
+            ?.toggleTheme();
+      },
+    ),
+  ],
+),
       floatingActionButton: FloatingActionButton(
         onPressed: addTask,
         child: const Icon(Icons.add),
@@ -263,44 +278,69 @@ class _TaskListScreenState extends State<TaskListScreen> {
                                           MainAxisSize.min,
                                       children: [
                                         if (task.isLocal)
-                                          IconButton(
-                                            icon:
-                                                const Icon(
-                                              Icons.delete,
-                                            ),
-                                            onPressed:
-                                                () async {
-                                              setState(() {
-                                                allTasks
-                                                    .remove(
-                                                        task);
-                                                applyFilters();
-                                              });
+  IconButton(
+    icon: const Icon(Icons.delete),
+    onPressed: () async {
+      final confirm =
+          await showDialog<bool>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title:
+              const Text('Delete Task'),
+          content: const Text(
+            'Are you sure you want to delete this task?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () =>
+                  Navigator.pop(
+                context,
+                false,
+              ),
+              child:
+                  const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () =>
+                  Navigator.pop(
+                context,
+                true,
+              ),
+              child:
+                  const Text('Delete'),
+            ),
+          ],
+        ),
+      );
 
-                                              final localTasks =
-                                                  allTasks
-                                                      .where(
-                                                        (e) =>
-                                                            e.isLocal,
-                                                      )
-                                                      .toList();
+      if (confirm != true) {
+        return;
+      }
 
-                                              await storageService
-                                                  .saveTasks(
-                                                      localTasks);
+      setState(() {
+        allTasks.remove(task);
+        applyFilters();
+      });
 
-                                              ScaffoldMessenger.of(
-                                                      context)
-                                                  .showSnackBar(
-                                                const SnackBar(
-                                                  content:
-                                                      Text(
-                                                    'Task deleted',
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                          ),
+      final localTasks =
+          allTasks.where(
+            (e) => e.isLocal,
+          ).toList();
+
+      await storageService
+          .saveTasks(localTasks);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(
+          const SnackBar(
+            content:
+                Text('Task deleted'),
+          ),
+        );
+      }
+    },
+  ),
                                         const Icon(
                                           Icons
                                               .arrow_forward_ios,

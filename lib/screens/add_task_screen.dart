@@ -2,21 +2,33 @@ import 'package:flutter/material.dart';
 import '../models/task_model.dart';
 
 class AddTaskScreen extends StatefulWidget {
-  const AddTaskScreen({super.key});
+  final Task? task;
+
+  const AddTaskScreen({
+    super.key,
+    this.task,
+  });
 
   @override
-  State<AddTaskScreen> createState() =>
-      _AddTaskScreenState();
+  State<AddTaskScreen> createState() => _AddTaskScreenState();
 }
 
-class _AddTaskScreenState
-    extends State<AddTaskScreen> {
+class _AddTaskScreenState extends State<AddTaskScreen> {
   final formKey = GlobalKey<FormState>();
 
-  final titleController =
-      TextEditingController();
+  final titleController = TextEditingController();
 
   bool completed = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.task != null) {
+      titleController.text = widget.task!.title;
+      completed = widget.task!.completed;
+    }
+  }
 
   void saveTask() {
     if (!formKey.currentState!.validate()) {
@@ -24,7 +36,8 @@ class _AddTaskScreenState
     }
 
     final task = Task(
-      id: DateTime.now().millisecondsSinceEpoch,
+      id: widget.task?.id ??
+          DateTime.now().millisecondsSinceEpoch,
       userId: 1,
       title: titleController.text,
       completed: completed,
@@ -37,8 +50,13 @@ class _AddTaskScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar:
-          AppBar(title: const Text('Add Task')),
+      appBar: AppBar(
+        title: Text(
+          widget.task == null
+              ? 'Add Task'
+              : 'Edit Task',
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -47,8 +65,7 @@ class _AddTaskScreenState
             children: [
               TextFormField(
                 controller: titleController,
-                decoration:
-                    const InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Task Title',
                 ),
                 validator: (value) {
@@ -60,8 +77,8 @@ class _AddTaskScreenState
                 },
               ),
               SwitchListTile(
-                title: const Text(
-                    'Completed Status'),
+                title:
+                    const Text('Completed Status'),
                 value: completed,
                 onChanged: (value) {
                   setState(() {
