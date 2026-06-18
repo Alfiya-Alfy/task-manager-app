@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/task_model.dart';
 
+
 class AddTaskScreen extends StatefulWidget {
   final Task? task;
 
@@ -14,11 +15,9 @@ class AddTaskScreen extends StatefulWidget {
 }
 
 class _AddTaskScreenState extends State<AddTaskScreen> {
-  final formKey = GlobalKey<FormState>();
-
   final titleController = TextEditingController();
-
   bool completed = false;
+  final formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -28,6 +27,12 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       titleController.text = widget.task!.title;
       completed = widget.task!.completed;
     }
+  }
+
+  @override
+  void dispose() {
+    titleController.dispose();
+    super.dispose();
   }
 
   void saveTask() {

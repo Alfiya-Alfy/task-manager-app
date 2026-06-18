@@ -278,24 +278,24 @@ class _TaskListScreenState extends State<TaskListScreen> {
                                           MainAxisSize.min,
                                       children: [
                                         if (task.isLocal)
-  IconButton(
-    icon: const Icon(Icons.delete),
-    onPressed: () async {
-      final confirm =
-          await showDialog<bool>(
-        context: context,
-        builder: (_) => AlertDialog(
-          title:
-              const Text('Delete Task'),
-          content: const Text(
-            'Are you sure you want to delete this task?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () =>
-                  Navigator.pop(
-                context,
-                false,
+          IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () async {
+                          final confirm =
+                              await showDialog<bool>(
+                            context: context,
+                            builder: (_) => AlertDialog(
+                              title:
+                                  const Text('Delete Task'),
+                              content: const Text(
+                                'Are you sure you want to delete this task?',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(
+                                    context,
+                                    false,
               ),
               child:
                   const Text('Cancel'),
@@ -312,6 +312,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
           ],
         ),
       );
+      
 
       if (confirm != true) {
         return;
